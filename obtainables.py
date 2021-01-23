@@ -87,6 +87,7 @@ spiritMoves = {
     "Unicorn": ("Headbutt", "Bite", "Gore", "Psychic Crush"),
     "Mammoth": ("Pound", "Headbutt", "Gore", "Trample"),
     "Phoenix": ("Whirlwind", "Peck", "Inferno"),
+    "Leviathan": ("Crunch", "Whirlwind", "Spout"),
     "Dragon": ("Scratch", "Bite", "Whirlwind", "Dragon Breath"),
     "True Phoenix": ("Whirlwind", "Inferno", "Psychic Crush"),
 }
@@ -118,13 +119,29 @@ commonSearchableTalismans = ("Ankh", "Amulet", "Claw", "Bracelet")
 rareSearchableTalismans = ("Jade Dragon", "Golden Phoenix", "Silver Unicorn", "Bronze Mammoth", "Onyx Leviathan")
 shopTalismans = ("Ankh", "Amulet", "Claw", "Bracelet", "Bamboo Panda", "Amber Leopard", "Granite Ram")
 
+commonTalismans = ("Ankh", "Amulet", "Claw", "Bracelet")
+uncommonTalismans = ("Bamboo Panda", "Amber Leopard", "Granite Ram")
+rareTalismans = ("Jade Dragon", "Golden Phoenix", "Silver Unicorn", "Bronze Mammoth", "Onyx Leviathan")
+
 tsellPrices = {
-    "common": 10,
-    "rare": 25,
-    "easter_egg": 50,
+    "common": 20,
+    "uncommon": 40,
+    "rare": 80,
+    "easter_egg": 100,
+}
+
+MerchantTLists = {
+    0: ("Claw", "Jade Dragon", "Golden Phoenix"),
+    1: ("Ankh", "Silver Unicorn", "Bronze Mammoth"),
+    2: ("Claw", "Onyx Leviathan", "Golden Phoenix"),
+    3: ("Amulet", "Silver Unicorn", "Onyx Leviathan"),
+    4: ("Ankh", "Bracelet", "Bronze Mammoth"),
+    5: ("Amulet", "Claw", "Onyx Leviathan"),
+    6: ("Jade Dragon", "Bronze Mammoth", "Onyx Leviathan"),
 }
 
 talismanInfo = {
+    "None": "",
     "Ankh": "(+10% ALL except EVA)",
     "Amulet": "(+30% HP)",
     "Claw": "(+30% ATK)",
@@ -135,9 +152,10 @@ talismanInfo = {
     "Jade Dragon": "(+25% ALL)",
     "Golden Phoenix": "(+30% ATK, EVA)",
     "Silver Unicorn": "(+35% EVA)",
-    "Bronze Mammoth": "(+80% HP, -10% EVA)",
+    "Bronze Mammoth": "(+70% HP, -10% EVA)",
     "Onyx Leviathan": "(+60% HP, +10% ATK)",
     "Easter Egg": "(NO BOOSTS)",
+    "Incarnation of Epicness": "(TOO EPIC)",
 }
 
 talismanIDs = {
@@ -151,13 +169,18 @@ talismanIDs = {
 }
 
 talismanPrices = {
-    "Ankh": 20,
-    "Claw": 30,
-    "Amulet": 30,
-    "Bracelet": 40,
-    "Bamboo Panda": 80,
-    "Amber Leopard": 80,
-    "Granite Ram": 100,
+    "Ankh": 30,
+    "Claw": 40,
+    "Amulet": 40,
+    "Bracelet": 50,
+    "Bamboo Panda": 150,
+    "Amber Leopard": 150,
+    "Granite Ram": 200,
+    "Bronze Mammoth": 300,
+    "Jade Dragon": 400,
+    "Golden Phoenix": 400,
+    "Silver Unicorn": 400,
+    "Onyx Leviathan": 400,
 }
 
 #stats are: (HP, ATK, DEF, EVA)
@@ -173,9 +196,10 @@ talismanBoosts = {
     "Jade Dragon": (1.25, 1.25, 1.25, 1.25),
     "Golden Phoenix": (1, 1.3, 1, 1.3),
     "Silver Unicorn": (1, 1, 1, 1.35),
-    "Bronze Mammoth": (1.8, 1, 1, 0.9),
+    "Bronze Mammoth": (1.7, 1, 1, 0.9),
     "Onyx Leviathan": (1.6, 1.1, 1, 1),
     "Easter Egg": (1, 1, 1, 1),
+    "Incarnation of Epicness": (1.5, 1.5, 1.5, 1.5),
 }
 
 
