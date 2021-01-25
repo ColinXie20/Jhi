@@ -22,6 +22,27 @@ async def errorsend(ctx, errMessage):
     await ctx.send(embed=errEmbed)
 
 
+@bot.command(name="testprogressbar", description="Not for gameplay usage.")
+async def testprogressbar(ctx):
+    bar = []
+    for i in range(15):
+        bar.append(":black_large_square:")
+    embed = Embed(color=Color.green())
+    embed.description = "Loading...\n"
+    for i in bar:
+        embed.description += i
+    message = await ctx.send(embed=embed)
+    for i in range(15):
+        bar[i] = ":green_square:"
+        embed.description = "Loading...\n"
+        for i in bar:
+            embed.description += i
+        await message.edit(embed=embed)
+        sleep(0.75)
+    embed.description = "Finished!"
+    await message.edit(embed=embed)
+
+
 @bot.command(name="help", description="Returns all commands available. If [type] is 'short', it will show the shortest aliases of the commands.")
 async def help(ctx, type="long", cmd=None):
     if type.lower() not in ("long", "short") and cmd == None:
@@ -1546,7 +1567,8 @@ async def botstats(ctx):
     embed.description = ":panda_face:**Jhi#4308**\n"+\
                         ":shield:**"+str(len(servers))+"** servers.:shield:\n"+\
                         ":sparkles:**"+str(len(players))+"** players.:sparkles:\n"+\
-                        ":zap:Invite me with [this link.](https://discord.com/api/oauth2/authorize?client_id=576874975307497533&permissions=355392&scope=bot)"
+                        ":zap:Invite me with [this link.](https://discord.com/api/oauth2/authorize?client_id=576874975307497533&permissions=355392&scope=bot)\n"+\
+                        ":page_facing_up:[Link to source code.](https://github.com/ColinXie20/Jhi)"
     await ctx.send(embed=embed)
 
 
