@@ -45,19 +45,20 @@ async def testprogressbar(ctx):
 
 @bot.command(name="help", description="Returns all commands available. If [type] is 'short', it will show the shortest aliases of the commands.")
 async def help(ctx, type="long", cmd=None):
-    if type.lower() not in ("long", "short") and cmd == None:
+    type = type.lower()
+    if type not in ("long", "short") and cmd == None:
         cmd = type
         type = "long"
     if cmd == None:
         columnheight = 20
-        if type.lower() == "short":
+        if type == "short":
             columnheight = 12
-        helptext = "**COMMANDS LIST**```fix"
+        helptext = "```fix"
         unsortedCommandList = bot.commands
         commandlist = []
         for command in unsortedCommandList:
             chosenAlias = str(command)
-            if type.lower() == "short":
+            if type == "short":
                 aliases = deepcopy(command.aliases)
                 aliases.append(str(command))
                 for alias in aliases:
@@ -100,11 +101,11 @@ async def help(ctx, type="long", cmd=None):
             if breaking:
                 break
         helptext += "```Try `jh!help <command>` to get more information on a command."
-        helpEmbed = Embed(color=Color.gold())
+        helpEmbed = Embed(title="**COMMANDS LIST**", color=Color.gold())
         helpEmbed.description = helptext
         await ctx.author.send(embed=helpEmbed)
         embed = Embed(color=Color.gold())
-        embed.description = ":thumbsup: Successfully sent you the "+type.lower()+" version of the command list!"
+        embed.description = ":thumbsup: Successfully sent you the "+type+" version of the command list!"
         await ctx.send(embed=embed)
     else:
         cmd = cmd.lower()
@@ -116,12 +117,12 @@ async def help(ctx, type="long", cmd=None):
                 found = True
                 break
         if found:
-            outputdata = "**"+cmd+"**\n"+foundcmd.description+"\n\n**Usage:** `jh!"
+            outputdata = foundcmd.description+"\n\n**Usage:** `jh!"
             outputdata += foundcmd.name
             for alias in foundcmd.aliases:
                 outputdata += "|"+alias
             outputdata += " "+foundcmd.signature+"`"
-            helpEmbed = Embed(color=Color.gold())
+            helpEmbed = Embed(title=cmd, color=Color.gold())
             helpEmbed.description = outputdata
             await ctx.send(embed=helpEmbed)
         else:
@@ -132,6 +133,46 @@ async def help(ctx, type="long", cmd=None):
 async def on_ready():
     await bot.change_presence(activity=Game(name="jh!help, jh!rollspirit"))
     print(f'{bot.user} has connected to Discord!')
+
+
+@bot.command(name="save", description="Saves the current state of the database into another file. [ADMINISTRATOR ONLY]")
+async def save(ctx, saveName="defaultSaveState"):
+    if ctx.author.id != bot.owner_id and ctx.message.channel.id != 791393875800621068:
+        await errorsend(ctx, "You are not an administrator.")
+        return
+
+    database = open("info.txt", "r")
+    lines = database.readlines()
+    database.close()
+
+    savestate = open(saveName+".txt", "w")
+    savestate.writelines(lines)
+    savestate.close()
+
+    embed = Embed(color=Color.gold())
+    embed.description = ":thumbsup: Successfully saved the database into `"+saveName+".txt`."
+    await ctx.send(embed=embed)
+
+
+@bot.command(name="load", description="Loads a save state into the database. [ADMINISTRATOR ONLY]")
+async def load(ctx, saveName="defaultSaveState"):
+    if ctx.author.id != bot.owner_id and ctx.message.channel.id != 791393875800621068:
+        await errorsend(ctx, "You are not an administrator.")
+        return
+    try:
+        savestate = open(saveName + ".txt", "r")
+        lines = savestate.readlines()
+        savestate.close()
+
+        database = open("info.txt", "w")
+        database.writelines(lines)
+        database.close()
+
+        embed = Embed(color=Color.gold())
+        embed.description = ":thumbsup: Successfully loaded `"+saveName+".txt` into the database."
+        await ctx.send(embed=embed)
+    except:
+        await errorsend(ctx, "An error occurred. Are you sure that save state exists?")
 
 
 @bot.command(name="set", description="Sets someone's data. <recipient> should be an ID. <value> is case sensitive."+
@@ -165,6 +206,8 @@ async def set(ctx, datatype, value, recipient = "self"):
     info[dtypeDict[datatype.lower()]] = value
     if datatype.lower() == "spirit":
         info[4] = value
+    elif datatype.lower() == "level":
+        info[3] = '0'
     updateinfo("info.txt", recipient, info)
     embed = Embed(color=Color.gold())
     embed.description = ":thumbsup: Successfully set **" + str(await bot.fetch_user(recipient)) + "**'s **"+datatype.lower()+"** to **"+value+"**."
@@ -254,12 +297,12 @@ async def summon(ctx):
             spirit = choice(legendarySpirits)
         else:
             spirit = choice(mythicalSpirits)
-    text = ":six_pointed_star:**SUMMON**:om_symbol:\n<@!"+str(ctx.author.id)+"> "
+    text = "<@!"+str(ctx.author.id)+"> "
     if spirit[0].lower() in ("a", "e", "i", "o", "u"):
         text += "You summoned an " + spiritEmoji[spirit.lower()] + "**" + spirit + "**!"
     else:
         text += "You summoned a " + spiritEmoji[spirit.lower()] + "**" + spirit + "**!"
-    embed = Embed(color=Color.green())
+    embed = Embed(title=":six_pointed_star:**SUMMON**:om_symbol:", color=Color.green())
     embed.description = text+"\nDo you want to keep this summon? React to this message to confirm."
     message = await ctx.send(embed=embed)
     yourinfo = getinfo("info.txt", ctx.author.id)
@@ -349,9 +392,9 @@ async def spirit(ctx, recipient = "self"):
     stats.append(round(statArr[3] * t_modifiers[3]))
     guild = userinfo[5]
     rank = userinfo[6]
-    embed = Embed(color=Color.green())
-    embed.description = spiritEmoji[spirit.lower()] + "**"+nickname+"\n:shield:Guild: "+guild+"\n:label:Rank: "+rank+\
-                        "**\n>>> **Prestige:** "+userinfo[7]+"(+"+str(int(userinfo[7])*10)+"% boost)" + \
+    embed = Embed(title=spiritEmoji[spirit.lower()] + nickname, color=Color.green())
+    embed.description = ":shield:**Guild:** "+guild+"\n:label:**Rank:** "+rank+\
+                        "\n>>> **Prestige:** "+userinfo[7]+"(+"+str(int(userinfo[7])*10)+"% boost)" + \
                         "\n**Level:** "+str(level)+"/"+str(100+(int(userinfo[7])*100))+\
                         "\n**EXP:** " +str(exp)+"/" +expgoal+\
                         "\n**HP:** "+str(stats[0])+\
@@ -390,9 +433,8 @@ async def stats(ctx, recipient = "self"):
     else:
         rarity = "admin"
     # stats are: (HP, ATK, DEF, EVA)
-    embed = Embed(color=Color.green())
-    embed.description = emoji + "**" + spirit + \
-                        "**\n:sparkles:**Rarity:** " + rarity.upper() + ":sparkles:" + \
+    embed = Embed(title=emoji+spirit, color=Color.green())
+    embed.description = ":sparkles:**Rarity:** " + rarity.upper() + ":sparkles:" + \
                         "\n>>> **HP:** " + str(statArr[0]) + \
                         "\n**ATK:** " + str(statArr[1]) + \
                         "\n**DEF:** " + str(statArr[2]) + \
@@ -545,9 +587,8 @@ async def inventory(ctx, recipient = "self"):
     elif info == -1:
         await errorsend(ctx, "Invalid user. They do not have a spirit animal.")
         return
-    embed = Embed(color=Color.green())
-    embed.description = "**"+str(await bot.fetch_user(recipient))+"'s Inventory/Equipment**\n>>> "+\
-                        "Spirit Animal: " + spiritEmoji[info[1].lower()] + "**"+info[4]+"**\n"+\
+    embed = Embed(title=str(await bot.fetch_user(recipient))+"'s Inventory/Equipment", color=Color.green())
+    embed.description = ">>> Spirit Animal: " + spiritEmoji[info[1].lower()] + "**"+info[4]+"**\n"+\
                         "Equipped Talisman: **"+info[9]+"**"+talismanInfo[info[9]]+"\n"+\
                         "Experience Modifier: **"+info[11]+"**"
     await ctx.send(embed=embed)
@@ -618,9 +659,8 @@ async def trade(ctx, recipient):
     def check(reaction, user):
         return str(reaction.emoji) == "✅" and user.id == recipient and reaction.message == message
     try:
-        embed = Embed(color=Color.orange())
-        embed.description = ":arrow_forward:**SPIRIT TRADE**:arrow_backward:\n" + \
-                            "<@" + str(recipient) + ">, react to this message to accept the trade request. You will both keep your levels."
+        embed = Embed(title=":arrow_forward:SPIRIT TRADE:arrow_backward:", color=Color.orange())
+        embed.description = "<@" + str(recipient) + ">, react to this message to accept the trade request. You will both keep your levels."
         message = await ctx.send(embed=embed)
         await message.add_reaction("✅")
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
@@ -646,9 +686,8 @@ async def ttrade(ctx, recipient):
     def check(reaction, user):
         return str(reaction.emoji) == "✅" and user.id == recipient and reaction.message == message
     try:
-        embed = Embed(color=Color.orange())
-        embed.description = ":arrow_forward:**TALISMAN TRADE**:arrow_backward:\n"+\
-                            "<@"+str(recipient)+">, react to this message to accept the trade request. You will both keep your spirits."
+        embed = Embed(title=":arrow_forward:TALISMAN TRADE:arrow_backward:", color=Color.orange())
+        embed.description = "<@"+str(recipient)+">, react to this message to accept the trade request. You will both keep your spirits."
         message = await ctx.send(embed=embed)
         await message.add_reaction("✅")
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
@@ -675,8 +714,8 @@ async def prestige(ctx):
     def check(reaction, user):
         return str(reaction.emoji) == "✅" and user.id == ctx.author.id and reaction.message == message
     try:
-        embed = Embed(color=Color.gold())
-        embed.description = ":trident: **PRESTIGE** :trident:\n<@"+str(ctx.author.id)+">, react to this message to prestige."+\
+        embed = Embed(title=":trident:PRESTIGE:trident:", color=Color.gold())
+        embed.description = "<@"+str(ctx.author.id)+">, react to this message to prestige."+\
                             "This will reset your level, but raise your level cap by **100**, and grant you **50**:diamond_shape_with_a_dot_inside:."
         message = await ctx.send(embed=embed)
         await message.add_reaction("✅")
@@ -791,10 +830,10 @@ async def shellgame(ctx):
     if yourinfo == -1:
         await errorsend(ctx, "You need a spirit animal to use this command! Roll one using the `jh!rollspirit` command!")
         return
-    header = ":coin:**SHELL GAME**:coin:\nGuess which shell the coin lies under!\nReact to this message to guess.\n"
+    header = "Guess which shell the coin lies under!\nReact to this message to guess.\n"
     shells = [":chestnut:", ":chestnut:", ":chestnut:"]
     coinLocation = randint(0, 2)
-    embed = Embed(color=Color.green())
+    embed = Embed(title=":coin:SHELL GAME:coin:", color=Color.green())
     embed.description = header + "> " + shells[0] + " " + shells[1] + " " + shells[2]
     message = await ctx.send(embed=embed)
     reactDict = {0: "1️⃣", 1: "2️⃣", 2: "3️⃣"}
@@ -944,9 +983,8 @@ async def ritual(ctx):
     elif int(yourinfo[2]) < 50:
         await errorsend(ctx, "Your spirit is not powerful enough to conduct a ritual. Get to level **50** first.")
         return
-    embed = Embed(color=Color.green())
-    embed.description = ":star_and_crescent:**RITUAL**:six_pointed_star:\n"+\
-                        "Do you want to conduct a ritual? If it is successful, your spirit will gain a random number of levels. "+\
+    embed = Embed(title=":star_and_crescent:RITUAL:six_pointed_star:", color=Color.green())
+    embed.description = "Do you want to conduct a ritual? If it is successful, your spirit will gain a random number of levels. "+\
                         "If it fails, your spirit will lose a random number of levels.\n"+\
                         "You will not gain or lose :diamond_shape_with_a_dot_inside: from this command.\n"+\
                         "React to this message to confirm."
@@ -1044,9 +1082,10 @@ async def duel(ctx, recipient):
     message = None
     def check(reaction, user):
         return str(reaction.emoji) == "✅" and user.id == recipient and reaction.message == message
+    duelmessage = ":crossed_swords:DUEL:crossed_swords:"
     try:
-        embed = Embed(color=Color.red())
-        embed.description = ":crossed_swords:**DUEL**:crossed_swords:\n<@"+str(recipient)+">, react to this message to accept the duel invitation!"
+        embed = Embed(title=duelmessage, color=Color.red())
+        embed.description = "<@"+str(recipient)+">, react to this message to accept the duel invitation!"
         message = await ctx.send(embed=embed)
         await message.add_reaction("✅")
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
@@ -1055,7 +1094,6 @@ async def duel(ctx, recipient):
         return
     yourinfo = getinfo("info.txt", ctx.author.id)
     theirinfo = getinfo("info.txt", recipient)
-    duelmessage = ":crossed_swords: **DUEL** :crossed_swords:"
     hpcounter = "Turn -\nHP1: - HP2: -"
     movelog = "> -\n> -"
     duelEmbed = Embed(color=Color.red())
@@ -1087,7 +1125,7 @@ async def duel(ctx, recipient):
     file = open("enablesmite.txt", "r")
     smiting = file.read()
     file.close()
-    await message.edit(embed=Embed(color=Color.red(), description=duelmessage + "\n" + hpcounter + "\n" + movelog))
+    await message.edit(embed=Embed(title=duelmessage, color=Color.red(), description=hpcounter + "\n" + movelog))
     while stats1[0] > 0 and stats2[0] > 0:
         if turn > 50:
             await errorsend(ctx, "Duel exceeded 50 turns, resulted in a stalemate.")
@@ -1223,8 +1261,8 @@ async def guild(ctx, recipient = "self"):
         if info[5] == guildname:
             totalLevel += int(info[2])
             memberCount += 1
-    embed = Embed(color=Color.blue())
-    embed.description = ":shield: **"+guildname+"** :shield:\n> **Total Level:** "+str(totalLevel)+"\n> **Members:** "+str(memberCount)
+    embed = Embed(title=":shield:"+guildname+":shield:", color=Color.blue())
+    embed.description = "> **Total Level:** "+str(totalLevel)+"\n> **Members:** "+str(memberCount)
     await ctx.send(embed=embed)
 
 
@@ -1239,7 +1277,7 @@ async def guildlist(ctx):
         return
     lines = getallplayers("info.txt")
     guildname = yourinfo[5]
-    outputdata = "**:shield: Members of "+guildname+" :shield:**\n>>> "
+    outputdata = ">>> "
     for line in lines:
         info = eval(line[:len(line) - 1])
         if info[5] == guildname:
@@ -1249,7 +1287,7 @@ async def guildlist(ctx):
             outputdata += "**"+rank+"** - "+name+" - **Level "+str(level)+"**\n"
     user = await bot.fetch_user(ctx.author.id)
     try:
-        embed = Embed(color=Color.blue())
+        embed = Embed(title=":shield:Members of "+guildname+":shield:", color=Color.blue())
         embed.description = outputdata
         await user.send(embed=embed)
         content = ":thumbsup: Successfully sent you a DM with member info!"
@@ -1551,8 +1589,8 @@ async def daily(ctx):
 @bot.command(name="credits", description="Shows the credits of the bot.")
 @commands.cooldown(1, 10, commands.BucketType.channel)
 async def credits(ctx):
-    embed = Embed(color=Color.gold())
-    embed.description = ":panda_face:**Jhi#4308**\nA small game bot centered around spirit animals.\n"+\
+    embed = Embed(title=":panda_face:Jhi#4308", color=Color.gold())
+    embed.description = "A small game bot centered around spirit animals.\n"+\
                         ":fire:Created by ||TheDysfunctionalDragon||#6910:fire:\n"+\
                         ":sparkles:With help from the following beta testers::sparkles:\n"+\
                         ">>> LaurelWyvern, Ghostie\nWingy, Jeffrier\nG01d3n1i0nfac3, Raystro\nDarkMaster, Marshyy\n--Nico--, Pickle75\nD4rk, Overlord"
@@ -1563,20 +1601,19 @@ async def credits(ctx):
 async def botstats(ctx):
     servers = list(bot.guilds)
     players = getallplayers("info.txt")
-    embed = Embed(color=Color.gold())
-    embed.description = ":panda_face:**Jhi#4308**\n"+\
-                        ":shield:**"+str(len(servers))+"** servers.:shield:\n"+\
+    embed = Embed(title=":panda_face:Jhi#4308", color=Color.gold())
+    embed.description = ":shield:**"+str(len(servers))+"** servers.:shield:\n"+\
                         ":sparkles:**"+str(len(players))+"** players.:sparkles:\n"+\
                         ":zap:Invite me with [this link.](https://discord.com/api/oauth2/authorize?client_id=576874975307497533&permissions=355392&scope=bot)\n"+\
-                        ":page_facing_up:[Link to source code.](https://github.com/ColinXie20/Jhi)"
+                        ":scroll:[Link to source code (GitHub).](https://github.com/ColinXie20/Jhi)\n"+\
+                        ":page_facing_up:[Link to source code (Repl.it).](https://repl.it/@Jhi/Jhi-Bot-Source#main.py)"
     await ctx.send(embed=embed)
 
 
 @bot.command(name="support", aliases=["supportserver", "server"], description="Gives a link to the support server.")
 async def support(ctx):
-    embed = Embed(color=Color.gold())
-    embed.description = "**Jhi Support Server**\n"+\
-                        "[Click here to join.](https://discord.gg/kspXEAbqKG)"
+    embed = Embed(title="Jhi Support Server", color=Color.gold())
+    embed.description = "[Click here to join.](https://discord.gg/kspXEAbqKG)"
     await ctx.send(embed=embed)
 
 
